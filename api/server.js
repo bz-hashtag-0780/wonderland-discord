@@ -2,8 +2,12 @@ import { Client, GatewayIntentBits } from 'discord.js';
 import dotenv from 'dotenv';
 import { raid } from './commands/raid.js'; // Import the raid command
 import express from 'express';
+import flowService from './services/flowService.js';
 
 dotenv.config();
+
+/** Express stuff */
+
 const app = express();
 const PORT = process.env.PORT || 8000;
 
@@ -13,7 +17,11 @@ app.get('/', (req, res) => {
 
 app.listen(PORT, async () => {
 	console.log(`Server is running on http://localhost:${PORT}`);
+	const address = await flowService.getAddress('854000040887582730');
+	console.log('flow address:', address);
 });
+
+/** Discord bot stuff */
 
 const client = new Client({
 	intents: [
