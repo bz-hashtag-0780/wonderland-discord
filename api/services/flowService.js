@@ -9,6 +9,7 @@ fcl.config()
 	.put('flow.network', process.env.FLOW_NETWORK)
 	.put('accessNode.api', process.env.ACCESS_NODE_API)
 	.put('0xEmeraldIdentity', '0x39e42c67cc851cfb')
+	.put('0xBasicBeastsRaids', process.env.ADMIN_ADDRESS)
 	.put('0xBasicBeastsNFTStaking', process.env.ADMIN_ADDRESS);
 
 class flowService {
@@ -27,6 +28,23 @@ pub fun main(id: String): Address? {
 		});
 
 		return address;
+	}
+
+	static async userOptIn(address) {
+		let script = `
+import BasicBeastsRaids from 0xBasicBeastsRaids
+
+pub fun main(address: Address): Bool {
+    return BasicBeastsRaids.getPlayerOptIn(address: address) != nil
+}
+        `;
+
+		const hasOptedIn = await fcl.query({
+			cadence: script,
+			args: (arg, t) => [arg(address, t.Address)],
+		});
+
+		return hasOptedIn;
 	}
 }
 
