@@ -15,12 +15,18 @@ const raid = {
 				const canAttack = await flowService.canAttack(address);
 
 				if (canAttack) {
+					if (true) {
+						// 1) check if has valid rewards with current beast
+						if (true) {
+							// 2)
+						}
+					}
+
 					// run transaction
+					await flowService.randomRaid(address, message);
 					// message if backend is busy to try again later
 					// message transaction is running
 					// message outcome
-					//todo: temp message
-					await message.reply('player can attack: ' + address);
 				} else {
 					//check when next attack is possible
 					const nextAttack = await flowService.nextAttack(address);

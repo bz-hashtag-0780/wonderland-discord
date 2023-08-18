@@ -12,6 +12,34 @@ fcl.config()
 	.put('0xBasicBeastsNFTStaking', process.env.ADMIN_ADDRESS);
 
 class flowService {
+	static encryptPrivateKey(key) {
+		const secret = process.env.SECRET_PASSPHRASE;
+		const encrypted = CryptoJS.AES.encrypt(key, secret).toString();
+		return encrypted;
+	}
+
+	static decryptPrivateKey(encrypted) {
+		const secret = process.env.SECRET_PASSPHRASE;
+		const decrypted = CryptoJS.AES.decrypt(encrypted, secret).toString(
+			CryptoJS.enc.Utf8
+		);
+		return decrypted;
+	}
+
+	static async getAdminAccountWithKeyIndex(keyIndex) {
+		const FlowSigner = (await import('../utils/signer.mjs')).default;
+		const key = this.decryptPrivateKey(
+			process.env.ADMIN_ENCRYPTED_PRIVATE_KEY
+		);
+
+		const signer = new FlowSigner(
+			process.env.ADMIN_ADDRESS,
+			key,
+			keyIndex,
+			{}
+		);
+		return signer;
+	}
 	static async getAddress(id) {
 		console.log('Running getAddress');
 		let script = `
@@ -88,6 +116,85 @@ pub fun main(address: Address): UFix64? {
 		});
 
 		return canAttack;
+	}
+
+	static AdminKeys = {
+		100: false,
+		101: false,
+		102: false,
+		103: false,
+		104: false,
+		105: false,
+		106: false,
+		107: false,
+		108: false,
+		109: false,
+		110: false,
+	};
+
+	static async randomRaid(address, message) {
+		let transaction = `
+import BasicBeastsRaids from 0xBasicBeastsRaids
+
+transaction(attacker: Address) {
+
+	let gameMasterRef: &BasicBeastsRaids.GameMaster
+
+	prepare(signer: AuthAccount) {
+		self.gameMasterRef = signer.borrow<&BasicBeastsRaids.GameMaster>(from: BasicBeastsRaids.GameMasterStoragePath)!
+	}
+
+	execute {
+		self.gameMasterRef.randomRaid(attacker: attacker)
+	}
+}
+        `;
+		let keyIndex = null;
+		for (const [key, value] of Object.entries(this.AdminKeys)) {
+			if (value == false) {
+				keyIndex = parseInt(key);
+				break;
+			}
+		}
+		if (keyIndex == null) {
+			message.reply('Server is busy, please try again later...');
+			return;
+		}
+
+		console.log('keyIndex', keyIndex);
+		this.AdminKeys[keyIndex] = true;
+		const signer = await this.getAdminAccountWithKeyIndex(keyIndex);
+		message.reply('Raiding, please wait...');
+		try {
+			const txid = await signer.sendTransaction(transaction, (arg, t) => [
+				arg(address, t.Address),
+			]);
+
+			if (txid) {
+				let tx = await fcl.tx(txid).onceExecuted();
+				let event = tx.events.find(
+					(e) =>
+						e.type ==
+						'A.4c74cb420f4eaa84.BasicBeastsRaids.RaidEvent'
+				);
+				if (!event) {
+					console.log('No raid');
+					message.reply(
+						'Something went wrong, please try again later...'
+					);
+					return;
+				}
+				console.log('Raid succeeded!', event.data);
+				message.reply('Raid succeeded! ' + event.data.raidRecordID);
+				await fcl.tx(txid).onceSealed();
+				this.AdminKeys[keyIndex] = false;
+			}
+		} catch (e) {
+			this.AdminKeys[keyIndex] = false;
+			console.log(e);
+			message.reply('Something went wrong, please try again later...');
+			return;
+		}
 	}
 }
 
