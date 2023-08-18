@@ -9,7 +9,8 @@ fcl.config()
 	.put('flow.network', process.env.FLOW_NETWORK)
 	.put('accessNode.api', process.env.ACCESS_NODE_API)
 	.put('0xBasicBeastsRaids', process.env.ADMIN_ADDRESS)
-	.put('0xBasicBeastsNFTStaking', process.env.ADMIN_ADDRESS);
+	.put('0xBasicBeastsNFTStaking', process.env.ADMIN_ADDRESS)
+	.put('0xBasicBeastsNFTStakingRewards', process.env.ADMIN_ADDRESS);
 
 class flowService {
 	static encryptPrivateKey(key) {
@@ -134,6 +135,28 @@ pub fun main(address: Address): UFix64? {
 		});
 
 		return canAttack;
+	}
+
+	static async hasValidRewards(address) {
+		console.log('Running hasValidRewards');
+		let script = `
+import BasicBeastsNFTStakingRewards from 0xBasicBeastsNFTStakingRewards
+import BasicBeastsRaids from 0xBasicBeastsRaids
+
+pub fun main(address: Address): Bool {
+	if let nftID = BasicBeastsRaids.getPlayerOptIn(address: address) {
+		return BasicBeastsNFTStakingRewards.hasRewardItemOne(nftID: nftID) != nil || BasicBeastsNFTStakingRewards.hasRewardItemTwo(nftID: nftID) != nil 
+	}
+	return false
+}
+        `;
+
+		const hasValidRewards = await fcl.query({
+			cadence: script,
+			args: (arg, t) => [arg(address, t.Address)],
+		});
+
+		return hasValidRewards;
 	}
 
 	static AdminKeys = {

@@ -15,10 +15,17 @@ const raid = {
 				const canAttack = await flowService.canAttack(address);
 
 				if (canAttack) {
-					if (true) {
-						// 1) check if has valid rewards with current beast
+					// check if has valid rewards with current beast
+					const hasValidRewards = await flowService.hasValidRewards(
+						address
+					);
+					if (hasValidRewards) {
 						// run transaction
 						await flowService.randomRaid(address, message);
+					} else {
+						message.reply(
+							'Sorry, your beast no longer has any sushi or ice cream to raid.'
+						);
 					}
 				} else {
 					//check when next attack is possible
