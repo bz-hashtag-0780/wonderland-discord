@@ -4,7 +4,7 @@ const raid = {
 	name: '!raid',
 	description: 'Handles the !raid command',
 	execute: async (message) => {
-		// Your raid logic here
+		// raid logic here
 
 		const address = await flowService.getAddress(message.author.id);
 		if (address) {
@@ -36,12 +36,11 @@ const raid = {
 					);
 				}
 			} else {
-				//todo: temp message
-				await message.reply('player has not opted in: ' + address);
+				await message.reply('you need to opt in first');
 			}
 		} else {
 			await message.reply(
-				'Cannot raid, please setup your emerald id with blocto correctly https://id.ecdao.org/'
+				'Cannot raid, please try and opt in on the website and link discord correctly'
 			);
 		}
 	},
