@@ -17,20 +17,13 @@ const raid = {
 				if (canAttack) {
 					if (true) {
 						// 1) check if has valid rewards with current beast
-						if (true) {
-							// 2)
-						}
+						// run transaction
+						await flowService.randomRaid(address, message);
 					}
-
-					// run transaction
-					await flowService.randomRaid(address, message);
-					// message if backend is busy to try again later
-					// message transaction is running
-					// message outcome
 				} else {
 					//check when next attack is possible
 					const nextAttack = await flowService.nextAttack(address);
-					await message.reply(
+					message.reply(
 						'Sorry, you can only raid 9 times a day (9 per Beast). You can raid again in ' +
 							secondsToHms(86400.0 - nextAttack)
 					);

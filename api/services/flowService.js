@@ -64,6 +64,24 @@ pub fun main(discordID: String): Address? {
 		return address;
 	}
 
+	static async getDiscord(address) {
+		console.log('Running getDiscord');
+		let script = `
+import BasicBeastsRaids from 0xBasicBeastsRaids
+
+pub fun main(address: Address): String? {
+	return BasicBeastsRaids.getAddressFromDiscord(address: address)
+}
+        `;
+
+		const discord = await fcl.query({
+			cadence: script,
+			args: (arg, t) => [arg(address, t.Address)],
+		});
+
+		return discord;
+	}
+
 	static async userOptIn(address) {
 		console.log('Running userOptIn');
 		let script = `
@@ -119,17 +137,16 @@ pub fun main(address: Address): UFix64? {
 	}
 
 	static AdminKeys = {
-		100: false,
-		101: false,
-		102: false,
-		103: false,
-		104: false,
-		105: false,
-		106: false,
-		107: false,
-		108: false,
-		109: false,
-		110: false,
+		120: false,
+		121: false,
+		112: false,
+		113: false,
+		114: false,
+		115: false,
+		116: false,
+		117: false,
+		118: false,
+		119: false,
 	};
 
 	static async randomRaid(address, message) {
@@ -164,7 +181,7 @@ transaction(attacker: Address) {
 		console.log('keyIndex', keyIndex);
 		this.AdminKeys[keyIndex] = true;
 		const signer = await this.getAdminAccountWithKeyIndex(keyIndex);
-		message.reply('Raiding, please wait...');
+		// message.reply('Raiding, please wait...');
 		try {
 			const txid = await signer.sendTransaction(transaction, (arg, t) => [
 				arg(address, t.Address),
@@ -180,19 +197,57 @@ transaction(attacker: Address) {
 				if (!event) {
 					console.log('No raid');
 					message.reply(
-						'Something went wrong, please try again later...'
+						'Something went wrong (1), please try again later...'
 					);
 					return;
 				}
 				console.log('Raid succeeded!', event.data);
-				message.reply('Raid succeeded! ' + event.data.raidRecordID);
+				const defenderDiscordID = await this.getDiscord(
+					event.data.defenderAddress
+				);
+				const prize =
+					event.data.rewardTemplateID == 1 ? 'Sushi' : 'Ice Cream';
+				if (defenderDiscordID && prize) {
+					// if attacker wins
+					if (event.data.attackerNFT == event.data.winner) {
+						message.reply(
+							`${message.author.toString()} has randomly raided <@${defenderDiscordID}> and stole 1 ${prize}`
+						);
+					}
+
+					// if defender wins
+					if (event.data.defenderNFT == event.data.winner) {
+						message.reply(
+							`${message.author.toString()} has randomly raided <@${defenderDiscordID}> and lost 1 ${prize}`
+						);
+					}
+
+					// if burn
+					if (
+						event.data.defenderNFT != event.data.winner &&
+						event.data.attackerNFT != event.data.winner
+					) {
+						message.reply(
+							`${message.author.toString()} has randomly raided <@${defenderDiscordID}> but lost 1 ${prize} which got burned`
+						);
+					}
+				} else {
+					message.reply(
+						'Something went wrong (2), please try again later...'
+					);
+				}
+
+				// free up key
 				await fcl.tx(txid).onceSealed();
+				console.log('randomRaid sealed');
 				this.AdminKeys[keyIndex] = false;
 			}
 		} catch (e) {
 			this.AdminKeys[keyIndex] = false;
 			console.log(e);
-			message.reply('Something went wrong, please try again later...');
+			message.reply(
+				'Something went wrong (3), please try again later...'
+			);
 			return;
 		}
 	}
