@@ -39,7 +39,7 @@ client.on('ready', () => {
 });
 
 client.on('messageCreate', async (message) => {
-	if (message.author.id !== '854000040887582730') return;
+	// if (message.author.id !== '854000040887582730') return;
 	if (message.channel.id !== '897100198738796555') return;
 
 	const args = message.content.trim().split(/ +/g);
