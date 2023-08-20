@@ -204,7 +204,7 @@ transaction(attacker: Address) {
 		console.log('keyIndex', keyIndex);
 		this.AdminKeys[keyIndex] = true;
 		const signer = await this.getAdminAccountWithKeyIndex(keyIndex);
-		// message.reply('Raiding, please wait...');
+		message.reply('Raid initiated, please wait...');
 		try {
 			const txid = await signer.sendTransaction(transaction, (arg, t) => [
 				arg(address, t.Address),
