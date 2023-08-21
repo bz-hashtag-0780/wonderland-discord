@@ -36,11 +36,13 @@ const raid = {
 					);
 				}
 			} else {
-				await message.reply('you need to opt in first');
+				await message.reply(
+					'You need to choose a beast first https://wonderland-chi.vercel.app/raids'
+				);
 			}
 		} else {
 			await message.reply(
-				'Cannot raid, please try and opt in on the website and link discord correctly'
+				'Cannot raid, please link discord & choose beast at https://wonderland-chi.vercel.app/raids'
 			);
 		}
 	},

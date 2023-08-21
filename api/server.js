@@ -2,6 +2,7 @@ import { Client, GatewayIntentBits } from 'discord.js';
 import dotenv from 'dotenv';
 import raid from './commands/raid.js';
 import express from 'express';
+import raidslimit from './commands/raidslimit.js';
 
 dotenv.config();
 
@@ -30,6 +31,7 @@ const client = new Client({
 
 const commands = new Map(); // Create a Map to store the commands
 commands.set(raid.name, raid); // Register the raid command
+commands.set(raidslimit.name, raidslimit);
 
 client.on('ready', () => {
 	console.log('Bot is online!');
