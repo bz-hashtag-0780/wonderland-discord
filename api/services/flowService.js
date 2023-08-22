@@ -65,6 +65,23 @@ pub fun main(discordID: String): Address? {
 		return address;
 	}
 
+	static async getAllAddress() {
+		console.log('Running getAllAddress');
+		let script = `
+import BasicBeastsRaids from 0xBasicBeastsRaids
+
+pub fun main(): {Address:String} {
+	return BasicBeastsRaids.getAddressToDiscords()
+}
+        `;
+
+		const address = await fcl.query({
+			cadence: script,
+		});
+
+		return address;
+	}
+
 	static async getDiscord(address) {
 		console.log('Running getDiscord');
 		let script = `
@@ -159,18 +176,25 @@ pub fun main(address: Address): Bool {
 		return hasValidRewards;
 	}
 
-	static AdminKeys = {
-		120: false,
-		121: false,
-		112: false,
-		113: false,
-		114: false,
-		115: false,
-		116: false,
-		117: false,
-		118: false,
-		119: false,
-	};
+	// static AdminKeys = {
+	// 	120: false,
+	// 	121: false,
+	// 	112: false,
+	// 	113: false,
+	// 	114: false,
+	// 	115: false,
+	// 	116: false,
+	// 	117: false,
+	// 	118: false,
+	// 	119: false,
+	// };
+	static AdminKeys = (() => {
+		let keys = {};
+		for (let i = 500; i < 700; i++) {
+			keys[i] = false;
+		}
+		return keys;
+	})();
 
 	static async randomRaid(address, message) {
 		let transaction = `
