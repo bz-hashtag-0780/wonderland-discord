@@ -3,7 +3,7 @@ import flowService from '../services/flowService.js';
 const raid = {
 	name: '!raid',
 	description: 'Handles the !raid command',
-	execute: async (message) => {
+	execute: async (message, args, targetUser) => {
 		// raid logic here
 
 		const address = await flowService.getAddress(message.author.id);
@@ -20,8 +20,12 @@ const raid = {
 						address
 					);
 					if (hasValidRewards) {
-						// run transaction
-						await flowService.randomRaid(address, message);
+						if (targetUser) {
+							message.reply(`Targeted raid: ${targetUser}`);
+						} else {
+							// run transaction
+							await flowService.randomRaid(address, message);
+						}
 					} else {
 						message.reply(
 							'Sorry, your beast no longer has any sushi or ice cream to raid.'
