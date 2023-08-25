@@ -298,6 +298,78 @@ transaction(attacker: Address) {
 			return;
 		}
 	}
+
+	static async getNextRaidTime(address) {
+		let script = `
+import BasicBeastsRaids from 0xBasicBeastsRaids
+pub fun main(player: Address): UFix64? {
+let nftCooldowns = BasicBeastsRaids.getAttackCooldownTimestamps()[player] ?? {}
+let currentTime = getCurrentBlock().timestamp
+let playerOptIn = BasicBeastsRaids.getPlayerOptIn(address: player)
+
+if let nftID = playerOptIn {
+    if let timestamps = nftCooldowns[nftID] {
+        for timestamp in timestamps {
+            if currentTime - timestamp < 86400.00 { // 86400 seconds in a day
+                let nextRaidTime = timestamp + 86400.00
+                return nextRaidTime
+            }
+        }
+    }
+}
+return nil // if the player does not have a NFT return nil
+}
+	`;
+		const result = await fcl.query({
+			cadence: script,
+			args: (arg, t) => [arg(address, t.Address)],
+		});
+
+		if (result) {
+			const nextRaidTimeInSeconds = parseFloat(result);
+			if (!isNaN(nextRaidTimeInSeconds)) {
+				const nextRaidTimeInMilliseconds = nextRaidTimeInSeconds * 1000; // Convert to milliseconds
+				return nextRaidTimeInMilliseconds;
+			}
+		}
+
+		return null; // Return null for invalid or missing data
+	}
+
+	static async getRemainingRaids(address) {
+		let script = `
+import BasicBeastsRaids from 0xBasicBeastsRaids
+pub fun main(player: Address): UInt32 {
+
+    let maxRaidsPerDay: Int = 9
+    let nftCooldowns = BasicBeastsRaids.getAttackCooldownTimestamps()[player] ?? {}
+    let currentTime = getCurrentBlock().timestamp
+    var recentRaids = 0
+    let playerOptIn = BasicBeastsRaids.getPlayerOptIn(address: player)
+
+    if let nftID = playerOptIn {
+        if let timestamps = nftCooldowns[nftID] {
+            for timestamp in timestamps {
+                if currentTime - timestamp < 86400.00 { // 86400 seconds in a day
+                    recentRaids = recentRaids + 1
+                }
+            }
+        }
+
+        let remainingRaids = maxRaidsPerDay - recentRaids
+        return remainingRaids > 0 ? UInt32(remainingRaids) : 0
+    }
+
+    return 0 // Player has not opted in
+	}
+    `;
+		const result = await fcl.query({
+			cadence: script,
+			args: (arg, t) => [arg(address, t.Address)],
+		});
+
+		return result;
+	}
 }
 
 export default flowService;
