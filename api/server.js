@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import raid from './commands/raid.js';
 import express from 'express';
 import raidslimit from './commands/raidslimit.js';
+import raidshelp from './commands/raidshelp.js';
 
 dotenv.config();
 
@@ -32,6 +33,7 @@ const client = new Client({
 const commands = new Map(); // Create a Map to store the commands
 commands.set(raid.name, raid); // Register the raid command
 commands.set(raidslimit.name, raidslimit);
+commands.set(raidshelp.name, raidshelp);
 
 client.on('ready', () => {
 	console.log('Bot is online!');
